@@ -1,0 +1,44 @@
+name: VeenaTerraformWorkflow
+on:
+  workflow_dispatch:
+       
+ 
+    
+env:
+  bucket: veena1306
+  tfstate: veenabucket.tfstate
+  aws-region: ap-south-1
+
+jobs:
+  job1:
+    name: terraform
+    runs-on: ubuntu-latest
+
+    
+    steps:
+      
+      - uses: actions/checkout@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2 
+        with:
+          terraform_version: 1.3.4
+
+        
+      
+      - name: AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1   
+        with:
+          aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID}}
+          aws-secret-access-key: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+          aws-session-token: ${{secrets.AWS_SESSION_TOKEN}}
+          aws-region: ${{env.aws-region}}
+
+      
+      - name: terraform init  
+        run: |
+          cd EC2
+          terraform init -reconfigure -backend-config="bucket=${{env.bucket}}" -backend-config="key=${{env.tfstate}}"
+      - name: terraform destroy
+        run: |
+          cd EC2
+          terraform destroy -auto-approve
